@@ -1,0 +1,6 @@
+{
+  "gopls": {
+    "ui.completion.usePlaceholders": true,
+    "build.buildFlags": ["-tags=*/injector.go"]
+  }
+}
