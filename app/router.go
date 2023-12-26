@@ -14,7 +14,7 @@ func InitRoute(
 	router := gin.New()
 
 	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	// router.Use(gin.Recovery())
 	router.Use(middleware.GlobalErrorHandler())
 
 	routerGroup := router.Group("/api")

@@ -30,31 +30,32 @@ func NewLoginService(
 	}
 }
 
-func (loginService *LoginServiceImpl) Login(ctx *gin.Context) *web.LoginResponse {
+func (loginService *LoginServiceImpl) Login(ctx *gin.Context) {
 	var request web.LoginRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		cError := errors.NewLudesError(http.StatusBadRequest, err.Error())
 		ctx.Error(cError)
-		return nil
+		return
 	}
 	if err := loginService.Validate.Struct(request); err != nil {
 		cError := errors.NewLudesError(http.StatusBadRequest, err.Error())
 		ctx.Error(cError)
-		return nil
+		return
 	}
 	user, err := loginService.UserRepository.FindByUsername(request.Username)
 	if err != nil {
 		cError := errors.NewLudesError(http.StatusUnauthorized, "Username dan password salah")
 		ctx.Error(cError)
-		return nil
+		return
 	}
 	passwordMatch := loginService.PasswordUtils.CheckPasswordHash(request.Password, user.Password)
 	if !passwordMatch {
 		cError := errors.NewLudesError(http.StatusUnauthorized, "Username dan password salah")
 		ctx.Error(cError)
+		return
 	} else {
 		loginResponse := web.NewLoginResponse("", "")
-		return loginResponse
+		response := web.Response(http.StatusOK, "Success", loginResponse)
+		ctx.JSON(http.StatusOK, response)
 	}
-	return nil
 }

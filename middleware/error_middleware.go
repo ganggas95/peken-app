@@ -11,16 +11,14 @@ import (
 func GlobalErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
-
-		err := c.Errors.Last()
+		err := c.Errors.ByType(gin.ErrorTypeAny).Last()
 		if err != nil {
 			switch e := err.Err.(type) {
 			case *errors.LudesError:
-				c.JSON(e.Status, web.Response(e.Status, e.Message, web.Null()))
+				c.AbortWithStatusJSON(e.Status, web.Response(e.Status, e.Message, web.Null()))
 			default:
-				c.JSON(http.StatusInternalServerError, web.Response(http.StatusInternalServerError, err.Error(), web.Null()))
+				c.AbortWithStatusJSON(http.StatusInternalServerError, web.Response(http.StatusInternalServerError, err.Error(), web.Null()))
 			}
 		}
-		c.Abort()
 	}
 }

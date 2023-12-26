@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"net/http"
-	"peken-be/models/web"
 	"peken-be/service"
 
 	"github.com/gin-gonic/gin"
@@ -21,41 +19,28 @@ func NewUserController(userService service.UserService) *UserControllerImpl {
 }
 
 func (ctrl *UserControllerImpl) Create(ctx *gin.Context) {
-	// defer helper.PanicHandler(ctx)
-	user := ctrl.UserService.Save(ctx)
-	if user != nil {
-		response := web.Response(http.StatusCreated, "Success", user)
-		ctx.JSON(http.StatusCreated, response)
-	}
+
+	ctrl.UserService.Save(ctx)
 }
 
 func (ctrl *UserControllerImpl) Update(ctx *gin.Context) {
-	// defer helper.PanicHandler(ctx)
-	user := ctrl.UserService.Update(ctx)
-	if user != nil {
-		response := web.Response(http.StatusOK, "Success", user)
-		ctx.JSON(http.StatusOK, response)
-	}
+
+	ctrl.UserService.Update(ctx)
+
 }
 
 func (ctrl *UserControllerImpl) Delete(ctx *gin.Context) {
-	// defer helper.PanicHandler(ctx)
-	userId := ctrl.UserService.Delete(ctx)
-	if userId != nil {
-		response := web.Response(http.StatusOK, "Success", web.Null())
-		ctx.JSON(http.StatusOK, response)
-	}
+
+	ctrl.UserService.Delete(ctx)
+
 }
 
 func (ctrl *UserControllerImpl) FindById(ctx *gin.Context) {
-	// defer helper.PanicHandler(ctx)
+
 	ctrl.UserService.FindByID(ctx)
 }
 
 func (ctrl *UserControllerImpl) FindAll(ctx *gin.Context) {
-	// defer helper.PanicHandler(ctx)
-	users := ctrl.UserService.FindAll(ctx)
-	response := web.Response(http.StatusOK, "Success", users)
 
-	ctx.JSON(http.StatusOK, response)
+	ctrl.UserService.FindAll(ctx)
 }

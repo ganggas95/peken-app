@@ -1,15 +1,13 @@
 package service
 
 import (
-	"peken-be/models/domain"
-
 	"github.com/gin-gonic/gin"
 )
 
 type UserService interface {
-	Save(ctx *gin.Context) *domain.User
-	Update(ctx *gin.Context) *domain.User
-	Delete(ctx *gin.Context) *int
-	FindByID(ctx *gin.Context) *domain.User
-	FindAll(ctx *gin.Context) []domain.User
+	Save(ctx *gin.Context)
+	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
+	FindByID(ctx *gin.Context)
+	FindAll(ctx *gin.Context)
 }

@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"net/http"
-	"peken-be/models/web"
 	"peken-be/service"
 
 	"github.com/gin-gonic/gin"
@@ -21,10 +19,5 @@ func NewLoginController(loginService service.LoginService) *LoginControllerImpl 
 }
 
 func (ctrl *LoginControllerImpl) LoginAPI(ctx *gin.Context) {
-	// defer helper.PanicHandler(ctx)
-	loginResponse := ctrl.LoginService.Login(ctx)
-	if loginResponse != nil {
-		response := web.Response(http.StatusOK, "Success", loginResponse)
-		ctx.JSON(http.StatusOK, response)
-	}
+	ctrl.LoginService.Login(ctx)
 }
