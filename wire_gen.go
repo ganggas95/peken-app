@@ -22,11 +22,13 @@ import (
 func InitializedServer() *gin.Engine {
 	db := app.ConnectToDb()
 	userRepositoryImpl := repository.NewUserRepository(db)
-	passwordGeneratorImpl := helper.NewPasswordGenerator()
+	passwordUtilsImpl := helper.NewPasswordUtils()
 	validate := validator.New()
-	userServiceImpl := service.NewUserService(userRepositoryImpl, passwordGeneratorImpl, validate)
+	userServiceImpl := service.NewUserService(userRepositoryImpl, passwordUtilsImpl, validate)
 	userControllerImpl := controller.NewUserController(userServiceImpl)
-	engine := app.InitRoute(userControllerImpl)
+	loginServiceImpl := service.NewLoginService(userRepositoryImpl, passwordUtilsImpl, validate)
+	loginControllerImpl := controller.NewLoginController(loginServiceImpl)
+	engine := app.InitRoute(userControllerImpl, loginControllerImpl)
 	return engine
 }
 
@@ -34,4 +36,6 @@ func InitializedServer() *gin.Engine {
 
 var userSet = wire.NewSet(repository.NewUserRepository, wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)), service.NewUserService, wire.Bind(new(service.UserService), new(*service.UserServiceImpl)), controller.NewUserController, wire.Bind(new(controller.UserController), new(*controller.UserControllerImpl)))
 
-var passGenSet = wire.NewSet(helper.NewPasswordGenerator, wire.Bind(new(helper.PasswordGenerator), new(*helper.PasswordGeneratorImpl)))
+var loginSet = wire.NewSet(service.NewLoginService, wire.Bind(new(service.LoginService), new(*service.LoginServiceImpl)), controller.NewLoginController, wire.Bind(new(controller.LoginController), new(*controller.LoginControllerImpl)))
+
+var passGenSet = wire.NewSet(helper.NewPasswordUtils, wire.Bind(new(helper.PasswordUtils), new(*helper.PasswordUtilsImpl)))

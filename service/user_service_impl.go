@@ -13,19 +13,19 @@ import (
 )
 
 type UserServiceImpl struct {
-	PasswordGenerator helper.PasswordGenerator
-	UserRepository    repository.UserRepository
-	Validate          *validator.Validate
+	PasswordUtils  helper.PasswordUtils
+	UserRepository repository.UserRepository
+	Validate       *validator.Validate
 }
 
 func NewUserService(
 	userRepository repository.UserRepository,
-	passwordGenerator helper.PasswordGenerator,
+	passwordUtils helper.PasswordUtils,
 	validate *validator.Validate) *UserServiceImpl {
 	userService := &UserServiceImpl{
-		UserRepository:    userRepository,
-		Validate:          validate,
-		PasswordGenerator: passwordGenerator,
+		UserRepository: userRepository,
+		Validate:       validate,
+		PasswordUtils:  passwordUtils,
 	}
 	return userService
 }
@@ -39,7 +39,7 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) *domain.User {
 	if err := service.Validate.Struct(request); err != nil {
 		return service.HandleError(ctx, http.StatusBadRequest, err)
 	}
-	hashedPassword, err := service.PasswordGenerator.HashPassword(request.Password)
+	hashedPassword, err := service.PasswordUtils.HashPassword(request.Password)
 	if err != nil {
 		return service.HandleError(ctx, http.StatusInternalServerError, err)
 	}
