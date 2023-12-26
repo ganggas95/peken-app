@@ -2,13 +2,17 @@ package service
 
 import (
 	"net/http"
+	"os"
 	"peken-be/helper"
+	"peken-be/models/domain"
 	"peken-be/models/errors"
 	"peken-be/models/web"
 	"peken-be/repository"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type LoginServiceImpl struct {
@@ -53,9 +57,29 @@ func (loginService *LoginServiceImpl) Login(ctx *gin.Context) {
 		cError := errors.NewLudesError(http.StatusUnauthorized, "Username dan password salah")
 		ctx.Error(cError)
 		return
-	} else {
-		loginResponse := web.NewLoginResponse("", "")
-		response := web.Response(http.StatusOK, "Success", loginResponse)
-		ctx.JSON(http.StatusOK, response)
 	}
+
+	token, err := loginService.GenerateToken(user)
+	if err != nil {
+		cError := errors.NewLudesError(http.StatusInternalServerError, err.Error())
+		ctx.Error(cError)
+		return
+	}
+	loginResponse := web.NewLoginResponse(token)
+	response := web.Response(http.StatusOK, "Success", loginResponse)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (service LoginServiceImpl) GenerateToken(user *domain.User) (string, error) {
+	token := jwt.NewWithClaims(
+		jwt.SigningMethodHS512,
+		jwt.MapClaims{
+			"userId": user.Id,
+			"email":  user.Email,
+			"name":   user.Name,
+			"exp":    time.Now().Add(time.Hour * 24 * 30).Unix(),
+		},
+	)
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	return tokenString, err
 }
