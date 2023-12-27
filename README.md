@@ -18,6 +18,22 @@ To prepare the environment for building and running the application, please foll
 
 This will ensure that the application is properly configured before building and running it.
 
+
+### Project Structure
+
+In this project, I'm using MVC structure with Dependency Injection support using [Google Wire](https://github.com/google/wire) library. Here is the structure that I used:
+
+![Structure](assets/mvc.png)
+
+Source Image from: https://medium.com/@adamszpilewicz/golang-web-application-with-mvc-like-structure-using-gin-and-pgx-dc19132adc12
+
+
+## Generate generated file ```wire_gen.go```
+As I mention before, this project running with Dependency Injection support using [Google Wire](https://github.com/google/wire) library. Before we run the application, we must generate the ```wire_gen.go```. Every changed files that we made that configured in ```injector.go```, we must run this command:
+```bash
+$ wire
+````
+
 ## Build, Run and Run Test
 
 Building the application
@@ -37,11 +53,3 @@ Running the test case
 ```bash
 $ make run-test
 ```
-
-### Project Structure
-
-In this project, I'm using MVC structure with Dependency Injection support using [Google Wire](https://github.com/google/wire) library. Here is the structure that I used:
-
-![Structure](assets/mvc.png)
-
-Source Image from: https://medium.com/@adamszpilewicz/golang-web-application-with-mvc-like-structure-using-gin-and-pgx-dc19132adc12
