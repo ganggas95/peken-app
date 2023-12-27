@@ -10,4 +10,5 @@ type UserRepository interface {
 	Delete(user *domain.User) error
 	FindByID(userId uint) (*domain.User, error)
 	FindAll() ([]domain.User, error)
+	FindByUsername(username string) (*domain.User, error)
 }

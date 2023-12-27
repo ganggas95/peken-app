@@ -22,12 +22,19 @@ var userSet = wire.NewSet(
 	wire.Bind(new(service.UserService), new(*service.UserServiceImpl)),
 	controller.NewUserController,
 	wire.Bind(new(controller.UserController), new(*controller.UserControllerImpl)))
+
+var loginSet = wire.NewSet(
+	service.NewLoginService,
+	wire.Bind(new(service.LoginService), new(*service.LoginServiceImpl)),
+	controller.NewLoginController,
+	wire.Bind(new(controller.LoginController), new(*controller.LoginControllerImpl)),
+)
 var passGenSet = wire.NewSet(
-	helper.NewPasswordGenerator,
-	wire.Bind(new(helper.PasswordGenerator), new(*helper.PasswordGeneratorImpl)),
+	helper.NewPasswordUtils,
+	wire.Bind(new(helper.PasswordUtils), new(*helper.PasswordUtilsImpl)),
 )
 
 func InitializedServer() *gin.Engine {
-	wire.Build(app.ConnectToDb, validator.New, userSet, passGenSet, app.InitRoute)
+	wire.Build(app.ConnectToDb, validator.New, userSet, passGenSet, loginSet, app.InitRoute)
 	return nil
 }

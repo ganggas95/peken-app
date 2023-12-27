@@ -7,14 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRoute(userController controller.UserController) *gin.Engine {
+func InitRoute(
+	userController controller.UserController,
+	loginController controller.LoginController,
+) *gin.Engine {
 	router := gin.New()
 
 	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	// router.Use(gin.Recovery())
 	router.Use(middleware.GlobalErrorHandler())
 
 	routerGroup := router.Group("/api")
+	// Login Routes
+	routerGroup.POST("/login", loginController.LoginAPI)
+	// User Routes
 	user := routerGroup.Group("/users")
 	{
 		user.POST("", userController.Create)
@@ -23,5 +29,6 @@ func InitRoute(userController controller.UserController) *gin.Engine {
 		user.PUT("/:userId", userController.Update)
 		user.DELETE("/:userId", userController.Delete)
 	}
+
 	return router
 }

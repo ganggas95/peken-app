@@ -46,9 +46,6 @@ func (repository *UserRepositoryImpl) Delete(user *domain.User) error {
 func (repository *UserRepositoryImpl) FindByID(userId uint) (*domain.User, error) {
 	user := domain.User{}
 	error := repository.DB.First(&user, userId).Error
-	if error != nil {
-		return nil, error
-	}
 	return &user, error
 }
 
@@ -57,4 +54,11 @@ func (repository *UserRepositoryImpl) FindAll() ([]domain.User, error) {
 	var users []domain.User
 	error := repository.DB.Find(&users).Error
 	return users, error
+}
+
+// FindByUsername ...
+func (repository *UserRepositoryImpl) FindByUsername(username string) (*domain.User, error) {
+	user := domain.User{}
+	error := repository.DB.Where("username = ?", username).First(&user).Error
+	return &user, error
 }

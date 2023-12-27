@@ -13,35 +13,38 @@ import (
 )
 
 type UserServiceImpl struct {
-	PasswordGenerator helper.PasswordGenerator
-	UserRepository    repository.UserRepository
-	Validate          *validator.Validate
+	PasswordUtils  helper.PasswordUtils
+	UserRepository repository.UserRepository
+	Validate       *validator.Validate
 }
 
 func NewUserService(
 	userRepository repository.UserRepository,
-	passwordGenerator helper.PasswordGenerator,
+	passwordUtils helper.PasswordUtils,
 	validate *validator.Validate) *UserServiceImpl {
 	userService := &UserServiceImpl{
-		UserRepository:    userRepository,
-		Validate:          validate,
-		PasswordGenerator: passwordGenerator,
+		UserRepository: userRepository,
+		Validate:       validate,
+		PasswordUtils:  passwordUtils,
 	}
 	return userService
 }
 
-func (service *UserServiceImpl) Save(ctx *gin.Context) *domain.User {
+func (service *UserServiceImpl) Save(ctx *gin.Context) {
 
 	var request web.UserCreateRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		return service.HandleError(ctx, http.StatusBadRequest, err)
+		ctx.Error(errors.NewLudesError(http.StatusBadRequest, err.Error()))
+		return
 	}
 	if err := service.Validate.Struct(request); err != nil {
-		return service.HandleError(ctx, http.StatusBadRequest, err)
+		ctx.Error(errors.NewLudesError(http.StatusBadRequest, err.Error()))
+		return
 	}
-	hashedPassword, err := service.PasswordGenerator.HashPassword(request.Password)
+	hashedPassword, err := service.PasswordUtils.HashPassword(request.Password)
 	if err != nil {
-		return service.HandleError(ctx, http.StatusInternalServerError, err)
+		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
+		return
 	}
 	user := &domain.User{
 		Name:     request.Name,
@@ -51,15 +54,13 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) *domain.User {
 	}
 	user, err = service.UserRepository.Save(user)
 	if err != nil {
-		return service.HandleError(ctx, http.StatusInternalServerError, err)
+		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
+		return
 	}
-	return user
-}
 
-func (service *UserServiceImpl) HandleError(ctx *gin.Context, status int, err error) *domain.User {
-	cError := errors.NewLudesError(http.StatusBadRequest, err.Error())
-	ctx.Error(cError)
-	return nil
+	response := web.Response(http.StatusCreated, "Success", user)
+	ctx.JSON(http.StatusCreated, response)
+
 }
 
 func (service *UserServiceImpl) UpdateUserFields(user *domain.User, request web.UserUpdateRequest) {
@@ -72,56 +73,70 @@ func (service *UserServiceImpl) UpdateUserFields(user *domain.User, request web.
 	if request.Username != "" {
 		user.Username = request.Username
 	}
+
 }
 
-func (service *UserServiceImpl) Update(ctx *gin.Context) *domain.User {
+func (service *UserServiceImpl) Update(ctx *gin.Context) {
 
 	userId := helper.ConvertStringToInt(ctx.Param("userId"))
 	request := web.UserUpdateRequest{
 		ID: uint(userId),
 	}
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		return service.HandleError(ctx, http.StatusBadRequest, err)
+		ctx.Error(errors.NewLudesError(http.StatusBadRequest, err.Error()))
+		return
 	}
 	if err := service.Validate.Struct(request); err != nil {
-		return service.HandleError(ctx, http.StatusBadRequest, err)
+		ctx.Error(errors.NewLudesError(http.StatusBadRequest, err.Error()))
+		return
 	}
 
 	user, err := service.UserRepository.FindByID(uint(userId))
 	if err != nil {
-		return service.HandleError(ctx, http.StatusNotFound, err)
+		ctx.Error(errors.NewLudesError(http.StatusNotFound, "Not found"))
+		return
 	}
 	service.UpdateUserFields(user, request)
 	user, err = service.UserRepository.Update(user)
 	if err != nil {
-		return service.HandleError(ctx, http.StatusInternalServerError, err)
+		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
+		return
 	}
-	return user
+
+	response := web.Response(http.StatusOK, "Success", user)
+	ctx.JSON(http.StatusOK, response)
 }
 
-func (service *UserServiceImpl) Delete(ctx *gin.Context) *int {
+func (service *UserServiceImpl) Delete(ctx *gin.Context) {
 	userId := helper.ConvertStringToInt(ctx.Param("userId"))
 	user, err := service.UserRepository.FindByID(uint(userId))
 	if err != nil {
-		service.HandleError(ctx, http.StatusNotFound, err)
-		return nil
+		ctx.Error(errors.NewLudesError(http.StatusNotFound, "Not found"))
+		return
 	}
 	service.UserRepository.Delete(user)
-	return &userId
+
+	response := web.Response(http.StatusOK, "Success", web.Null())
+	ctx.JSON(http.StatusOK, response)
 }
 
-func (service *UserServiceImpl) FindByID(ctx *gin.Context) *domain.User {
+func (service *UserServiceImpl) FindByID(ctx *gin.Context) {
 	userId := helper.ConvertStringToInt(ctx.Param("userId"))
 	user, err := service.UserRepository.FindByID(uint(userId))
 
 	if err != nil {
-		return service.HandleError(ctx, http.StatusNotFound, err)
+		ctx.Error(errors.NewLudesError(http.StatusNotFound, "Not found"))
+		return
 	}
 
-	return user
+	response := web.Response(http.StatusOK, "Success", web.NewUserResponse(*user))
+	ctx.JSON(http.StatusOK, response)
 }
 
-func (service *UserServiceImpl) FindAll(ctx *gin.Context) []domain.User {
+func (service *UserServiceImpl) FindAll(ctx *gin.Context) {
 	users, _ := service.UserRepository.FindAll()
-	return users
+
+	response := web.Response(http.StatusOK, "Success", users)
+
+	ctx.JSON(http.StatusOK, response)
 }
