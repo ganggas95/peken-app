@@ -10,4 +10,5 @@ type UserService interface {
 	Delete(ctx *gin.Context)
 	FindByID(ctx *gin.Context)
 	FindAll(ctx *gin.Context)
+	FindAllUserRoles(ctx *gin.Context)
 }

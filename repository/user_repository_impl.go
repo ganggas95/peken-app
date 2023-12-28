@@ -45,20 +45,37 @@ func (repository *UserRepositoryImpl) Delete(user *domain.User) error {
 // FindByID ...
 func (repository *UserRepositoryImpl) FindByID(userId uint) (*domain.User, error) {
 	user := domain.User{}
-	error := repository.DB.First(&user, userId).Error
+	error := repository.DB.Preload("Roles").First(&user, userId).Error
 	return &user, error
 }
 
 // FindAll ...
 func (repository *UserRepositoryImpl) FindAll() ([]domain.User, error) {
 	var users []domain.User
-	error := repository.DB.Find(&users).Error
+	error := repository.DB.Preload("Roles").Find(&users).Error
 	return users, error
 }
 
 // FindByUsername ...
-func (repository *UserRepositoryImpl) FindByUsername(username string) (*domain.User, error) {
-	user := domain.User{}
-	error := repository.DB.Where("username = ?", username).First(&user).Error
-	return &user, error
+func (repository *UserRepositoryImpl) FindByUsername(username string) *domain.User {
+	user := &domain.User{}
+	error := repository.DB.Preload("Roles").Where(
+		"username = ?", username,
+	).First(&user).Error
+	if error != nil {
+		return nil
+	}
+	return user
+}
+
+// FindByEmail ...
+func (repository *UserRepositoryImpl) FindByEmail(email string) *domain.User {
+	user := &domain.User{}
+	error := repository.DB.Preload("Roles").Where(
+		"email = ?", email,
+	).First(&user).Error
+	if error != nil {
+		return nil
+	}
+	return user
 }

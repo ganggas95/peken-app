@@ -15,6 +15,10 @@ import (
 	"github.com/google/wire"
 )
 
+var roleSet = wire.NewSet(
+	repository.NewRoleRepository,
+	wire.Bind(new(repository.RoleRepository), new(*repository.RoleRepositoryImpl)),
+)
 var userSet = wire.NewSet(
 	repository.NewUserRepository,
 	wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)),
@@ -35,6 +39,6 @@ var passGenSet = wire.NewSet(
 )
 
 func InitializedServer() *gin.Engine {
-	wire.Build(app.ConnectToDb, validator.New, userSet, passGenSet, loginSet, app.InitRoute)
+	wire.Build(app.ConnectToDb, validator.New, userSet, passGenSet, roleSet, loginSet, app.InitRoute)
 	return nil
 }

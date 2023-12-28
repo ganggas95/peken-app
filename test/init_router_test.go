@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"peken-be/app"
+	"peken-be/constants"
 	"peken-be/controller"
 	"peken-be/helper"
 	"peken-be/models/domain"
@@ -13,13 +14,15 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func InitRouter(db *gorm.DB) *gin.Engine {
 	userRepository := repository.NewUserRepository(db)
+	roleRepository := repository.NewRoleRepository(db)
 	passwordUtils := helper.NewPasswordUtils()
 	validate := validator.New()
-	userService := service.NewUserService(userRepository, passwordUtils, validate)
+	userService := service.NewUserService(roleRepository, userRepository, passwordUtils, validate)
 	userController := controller.NewUserController(userService)
 	loginService := service.NewLoginService(userRepository, passwordUtils, validate)
 	loginController := controller.NewLoginController(loginService)
@@ -31,24 +34,62 @@ func Init() {
 	// app.InitLog()
 	godotenv.Load("../.env")
 	os.Setenv("ENV", "test")
+	gin.SetMode(gin.ReleaseMode)
 }
 
-func InitializeTestApp() (*gin.Engine, *domain.User) {
+func InitRoleMock(db *gorm.DB) (domain.Role, domain.Role, domain.Role) {
+	adminRole := domain.Role{
+		Name: constants.ADMIN,
+	}
+	memberRole := domain.Role{
+		Name: constants.MEMBER,
+	}
+	kasirRole := domain.Role{
+		Name: constants.KASIR,
+	}
+	db.Create(&adminRole)
+	db.Create(&memberRole)
+	db.Create(&kasirRole)
+	return adminRole, memberRole, kasirRole
+}
+
+func InitializeTestApp() (*gin.Engine, string) {
 	Init()
 	// Initialize db and router
 	db := app.ConnectToDb()
+	db.Logger.LogMode(logger.Info)
 	router := InitRouter(db)
 
 	// Clean up database and make migration
 	db.Migrator().DropTable(&domain.User{})
+	db.Migrator().DropTable(&domain.Role{})
+	db.Migrator().DropTable("user_roles")
 	db.AutoMigrate(&domain.User{})
+	db.AutoMigrate(&domain.Role{})
 	// Initializer User data
 	passwordUtils := helper.NewPasswordUtils()
 	password, _ := passwordUtils.HashPassword("password")
+	admin, _, _ := InitRoleMock(db)
+	var roles []domain.Role
+	roles = append(roles, admin)
 	mockUser := domain.User{
 		Username: "testuser",
 		Password: password,
+		Name:     "test",
+		Email:    "test@test.com",
+		Roles:    roles,
+	}
+	mockUser2 := domain.User{
+		Username: "testuser12",
+		Password: password,
+		Name:     "test",
+		Email:    "test12@test.com",
+		Roles:    roles,
 	}
 	db.Create(&mockUser)
-	return router, &mockUser
+	db.Save(&mockUser)
+	db.Create(&mockUser2)
+	db.Save(&mockUser2)
+	token, _ := helper.GenerateToken(&mockUser)
+	return router, token
 }
