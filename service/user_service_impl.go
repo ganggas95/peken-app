@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserServiceImpl struct {
@@ -44,6 +45,7 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) {
 		ctx.Error(errors.NewLudesError(http.StatusBadRequest, err.Error()))
 		return
 	}
+
 	hashedPassword, err := service.PasswordUtils.HashPassword(request.Password)
 	if err != nil {
 		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
@@ -51,7 +53,7 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) {
 	}
 	var roles []domain.Role
 	for _, roleRequest := range request.Roles {
-		role, errRole := service.RoleRepository.FindByID(roleRequest.RoleID)
+		role, errRole := service.RoleRepository.FindByID(roleRequest.ID)
 		if errRole != nil {
 			ctx.Error(errors.NewLudesError(http.StatusBadRequest, "Role not found"))
 			return
@@ -66,12 +68,12 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) {
 		Roles:    roles,
 	}
 	user, err = service.UserRepository.Save(user)
-	if err != nil {
-		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
+	if err != nil && err.(*pgconn.PgError).Code == "23505" {
+		ctx.Error(errors.NewLudesError(http.StatusConflict, "User already exist"))
 		return
 	}
 
-	response := web.Response(http.StatusCreated, "Success", user)
+	response := web.Response(http.StatusCreated, "Success", web.NewUserResponse(*user))
 	ctx.JSON(http.StatusCreated, response)
 
 }
@@ -85,6 +87,18 @@ func (service *UserServiceImpl) UpdateUserFields(user *domain.User, request web.
 	}
 	if request.Username != "" {
 		user.Username = request.Username
+	}
+
+	if request.Roles != nil {
+		roles := make([]domain.Role, 0)
+		for _, roleRequest := range request.Roles {
+			role, err := service.RoleRepository.FindByID(roleRequest.ID)
+			if err != nil {
+				continue
+			}
+			roles = append(roles, *role)
+		}
+		user.Roles = roles
 	}
 
 }
@@ -109,14 +123,15 @@ func (service *UserServiceImpl) Update(ctx *gin.Context) {
 		ctx.Error(errors.NewLudesError(http.StatusNotFound, "Not found"))
 		return
 	}
+
 	service.UpdateUserFields(user, request)
 	user, err = service.UserRepository.Update(user)
-	if err != nil {
-		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
+	if err != nil && err.(*pgconn.PgError).Code == "23505" {
+		ctx.Error(errors.NewLudesError(http.StatusConflict, "User already exist"))
 		return
 	}
 
-	response := web.Response(http.StatusOK, "Success", user)
+	response := web.Response(http.StatusOK, "Success", web.NewUserResponse(*user))
 	ctx.JSON(http.StatusOK, response)
 }
 

@@ -13,7 +13,10 @@ require (
 	gorm.io/gorm v1.25.5
 )
 
-require github.com/stretchr/testify v1.8.4 // indirect
+require (
+	github.com/lib/pq v1.10.9 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
+)
 
 require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1

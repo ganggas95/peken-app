@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"peken-be/controller"
 	"peken-be/middleware"
 	"peken-be/repository"
@@ -14,9 +15,10 @@ func InitRoute(
 	userRepository repository.UserRepository,
 ) *gin.Engine {
 	router := gin.New()
-
-	router.Use(gin.Logger())
-	// router.Use(gin.Recovery())
+	if os.Getenv("ENV") != "test" {
+		router.Use(gin.Logger())
+		router.Use(gin.Recovery())
+	}
 	router.Use(middleware.GlobalErrorHandler())
 
 	routerGroup := router.Group("/api")

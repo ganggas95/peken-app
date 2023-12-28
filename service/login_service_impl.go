@@ -42,8 +42,8 @@ func (loginService *LoginServiceImpl) Login(ctx *gin.Context) {
 		ctx.Error(cError)
 		return
 	}
-	user, err := loginService.UserRepository.FindByUsername(request.Username)
-	if err != nil {
+	user := loginService.UserRepository.FindByUsername(request.Username)
+	if user == nil {
 		cError := errors.NewLudesError(http.StatusUnauthorized, "Username dan password salah")
 		ctx.Error(cError)
 		return

@@ -1,7 +1,7 @@
 package web
 
 type UserRoleRequest struct {
-	RoleID uint `json:"role_id" validate:"required"`
+	ID uint `json:"id" validate:"required"`
 }
 
 type UserCreateRequest struct {

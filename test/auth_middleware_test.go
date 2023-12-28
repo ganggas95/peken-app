@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"peken-be/helper"
 	"strings"
 	"testing"
 
@@ -15,13 +14,12 @@ import (
 
 func TestAuthMiddlewareSuccess(t *testing.T) {
 	// Initialize
-	router, user := InitializeTestApp()
+	router, token := InitializeTestApp()
 
 	// Request
 	requestBody := strings.NewReader(``)
 	request := httptest.NewRequest(http.MethodGet, "/api/users", requestBody)
 	request.Header.Add("Content-Type", "application/json")
-	token, _ := helper.GenerateToken(user)
 	request.Header.Add("Authorization", "Bearer "+token)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)

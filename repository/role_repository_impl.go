@@ -7,29 +7,27 @@ import (
 )
 
 type RoleRepositoryImpl struct {
-	DB        *gorm.DB
-	BaseQuery *gorm.DB
+	DB *gorm.DB
 }
 
 // NewRoleRepository returns new RoleRepository.
 func NewRoleRepository(db *gorm.DB) *RoleRepositoryImpl {
 	db.AutoMigrate(&domain.Role{})
 	return &RoleRepositoryImpl{
-		DB:        db,
-		BaseQuery: db.Model(&domain.Role{}).Preload("Users"),
+		DB: db,
 	}
 }
 
 // FindByID ...
 func (repository *RoleRepositoryImpl) FindByID(roleId uint) (*domain.Role, error) {
 	role := domain.Role{}
-	err := repository.BaseQuery.First(&role, roleId).Error
+	err := repository.DB.First(&role, roleId).Error
 	return &role, err
 }
 
 // FindAll ...
 func (repository *RoleRepositoryImpl) FindAll() ([]domain.Role, error) {
 	var roles []domain.Role
-	err := repository.BaseQuery.Find(&roles).Error
+	err := repository.DB.Find(&roles).Error
 	return roles, err
 }
