@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"peken-be/helper"
 	"strings"
 	"testing"
 
@@ -12,14 +13,16 @@ import (
 	_ "gorm.io/driver/postgres"
 )
 
-func TestLoginSuccess(t *testing.T) {
+func TestAuthMiddlewareSuccess(t *testing.T) {
 	// Initialize
-	router, _ := InitializeTestApp()
+	router, user := InitializeTestApp()
 
 	// Request
-	requestBody := strings.NewReader(`{"username": "testuser", "password": "password"}`)
-	request := httptest.NewRequest(http.MethodPost, "/api/login", requestBody)
+	requestBody := strings.NewReader(``)
+	request := httptest.NewRequest(http.MethodGet, "/api/users", requestBody)
 	request.Header.Add("Content-Type", "application/json")
+	token, _ := helper.GenerateToken(user)
+	request.Header.Add("Authorization", "Bearer "+token)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
 
@@ -32,19 +35,20 @@ func TestLoginSuccess(t *testing.T) {
 
 	// Assertion
 	// Status code is 200
+	// Response body contains data and value should not to be null
 	assert.Equal(t, response.StatusCode, http.StatusOK)
 	assert.Equal(t, responseBody["status"], float64(200))
-	// Response body contains access_token and value is not null
-	assert.NotEqual(t, responseBody["data"].(map[string]interface{})["access_token"], nil)
+	assert.NotEqual(t, responseBody["data"], nil)
 }
 
-func TestLoginFailed(t *testing.T) {
+func TestAuthMiddlewareFailed(t *testing.T) {
 	// Initialize
 	router, _ := InitializeTestApp()
 
-	requestBody := strings.NewReader(`{"username": "testwrongpass", "password": "password"}`)
-	request := httptest.NewRequest(http.MethodPost, "/api/login", requestBody)
+	requestBody := strings.NewReader(``)
+	request := httptest.NewRequest(http.MethodGet, "/api/users", requestBody)
 	request.Header.Add("Content-Type", "application/json")
+
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
 
@@ -59,6 +63,6 @@ func TestLoginFailed(t *testing.T) {
 	// Status code is 401
 	assert.Equal(t, response.StatusCode, http.StatusUnauthorized)
 	assert.Equal(t, responseBody["status"], float64(401))
-	// Response body contains data and value is null
+	// Response body contains data and value should be null
 	assert.Equal(t, responseBody["data"], nil)
 }

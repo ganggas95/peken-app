@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"net/http"
+	"peken-be/helper"
 	"peken-be/models/web"
-	"peken-be/service"
+	"peken-be/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(loginService service.LoginService) gin.HandlerFunc {
+func AuthMiddleware(userRepository repository.UserRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Check if request has Authorization header
 		authorizationHeader := ctx.GetHeader("Authorization")
@@ -30,7 +31,7 @@ func AuthMiddleware(loginService service.LoginService) gin.HandlerFunc {
 		}
 		// Handle case when Bearer is present
 		token := authorizationHeader[7:]
-		user, err := loginService.DecodeToken(token)
+		user, err := helper.DecodeToken(token)
 		if err != nil {
 			// Handle case when token is invalid
 			ctx.AbortWithStatusJSON(
@@ -38,9 +39,17 @@ func AuthMiddleware(loginService service.LoginService) gin.HandlerFunc {
 				web.Response(http.StatusUnauthorized, err.Error(), web.Null()))
 			return
 		}
+		userInstance, err := userRepository.FindByID(uint(user["userId"].(float64)))
+		if err != nil {
+			// Handle case when user is not found
+			ctx.AbortWithStatusJSON(
+				http.StatusUnauthorized,
+				web.Response(http.StatusUnauthorized, "Invalid token", web.Null()))
+			return
+		}
 		// Continue with the request
 		// Set currentUser to the context
-		ctx.Set("currentUser", user)
+		ctx.Set("currentUser", userInstance)
 		ctx.Copy().Next()
 	}
 }

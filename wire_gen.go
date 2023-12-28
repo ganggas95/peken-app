@@ -28,7 +28,7 @@ func InitializedServer() *gin.Engine {
 	userControllerImpl := controller.NewUserController(userServiceImpl)
 	loginServiceImpl := service.NewLoginService(userRepositoryImpl, passwordUtilsImpl, validate)
 	loginControllerImpl := controller.NewLoginController(loginServiceImpl)
-	engine := app.InitRoute(userControllerImpl, loginControllerImpl, loginServiceImpl)
+	engine := app.InitRoute(userControllerImpl, loginControllerImpl, userRepositoryImpl)
 	return engine
 }
 
