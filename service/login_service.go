@@ -10,4 +10,5 @@ type LoginService interface {
 	// Login
 	Login(ctx *gin.Context)
 	GenerateToken(user *domain.User) (string, error)
+	DecodeToken(token string) (*domain.User, error)
 }

@@ -3,6 +3,7 @@ package app
 import (
 	"peken-be/controller"
 	"peken-be/middleware"
+	"peken-be/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,6 +11,7 @@ import (
 func InitRoute(
 	userController controller.UserController,
 	loginController controller.LoginController,
+	loginService service.LoginService,
 ) *gin.Engine {
 	router := gin.New()
 
@@ -22,13 +24,12 @@ func InitRoute(
 	routerGroup.POST("/login", loginController.LoginAPI)
 	// User Routes
 	user := routerGroup.Group("/users")
-	{
-		user.POST("", userController.Create)
-		user.GET("", userController.FindAll)
-		user.GET("/:userId", userController.FindById)
-		user.PUT("/:userId", userController.Update)
-		user.DELETE("/:userId", userController.Delete)
-	}
+	user.Use(middleware.AuthMiddleware(loginService))
+	user.POST("", userController.Create)
+	user.GET("", userController.FindAll)
+	user.GET("/:userId", userController.FindById)
+	user.PUT("/:userId", userController.Update)
+	user.DELETE("/:userId", userController.Delete)
 
 	return router
 }

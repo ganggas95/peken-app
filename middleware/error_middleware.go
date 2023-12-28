@@ -17,7 +17,9 @@ func GlobalErrorHandler() gin.HandlerFunc {
 			case *errors.LudesError:
 				c.AbortWithStatusJSON(e.Status, web.Response(e.Status, e.Message, web.Null()))
 			default:
-				c.AbortWithStatusJSON(http.StatusInternalServerError, web.Response(http.StatusInternalServerError, err.Error(), web.Null()))
+				c.AbortWithStatusJSON(
+					http.StatusInternalServerError,
+					web.Response(http.StatusInternalServerError, err.Error(), web.Null()))
 			}
 		}
 	}

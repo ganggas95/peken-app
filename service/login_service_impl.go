@@ -75,11 +75,31 @@ func (service LoginServiceImpl) GenerateToken(user *domain.User) (string, error)
 		jwt.SigningMethodHS512,
 		jwt.MapClaims{
 			"userId": user.Id,
-			"email":  user.Email,
-			"name":   user.Name,
 			"exp":    time.Now().Add(time.Hour * 24 * 30).Unix(),
 		},
 	)
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
 	return tokenString, err
+}
+
+func (service LoginServiceImpl) DecodeToken(tokenString string) (*domain.User, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.NewLudesError(http.StatusUnauthorized, "Invalid token")
+		}
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return nil, errors.NewLudesError(http.StatusUnauthorized, "Invalid token")
+	}
+	userId := int(claims["userId"].(float64))
+	user, err := service.UserRepository.FindByID(uint(userId))
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"peken-be/service"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,6 @@ func (ctrl *UserControllerImpl) FindById(ctx *gin.Context) {
 }
 
 func (ctrl *UserControllerImpl) FindAll(ctx *gin.Context) {
-
+	fmt.Println(ctx.Get("currentUser"))
 	ctrl.UserService.FindAll(ctx)
 }
