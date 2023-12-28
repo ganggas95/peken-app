@@ -7,14 +7,16 @@ import (
 )
 
 type UserRepositoryImpl struct {
-	DB *gorm.DB
+	DB        *gorm.DB
+	BaseQuery *gorm.DB
 }
 
 // NewUserRepository returns new UserRepositoryImpl.
 func NewUserRepository(db *gorm.DB) *UserRepositoryImpl {
 	db.AutoMigrate(&domain.User{})
 	return &UserRepositoryImpl{
-		DB: db,
+		DB:        db,
+		BaseQuery: db.Model(&domain.User{}).Preload("Roles"),
 	}
 }
 
@@ -45,20 +47,20 @@ func (repository *UserRepositoryImpl) Delete(user *domain.User) error {
 // FindByID ...
 func (repository *UserRepositoryImpl) FindByID(userId uint) (*domain.User, error) {
 	user := domain.User{}
-	error := repository.DB.First(&user, userId).Error
+	error := repository.BaseQuery.First(&user, userId).Error
 	return &user, error
 }
 
 // FindAll ...
 func (repository *UserRepositoryImpl) FindAll() ([]domain.User, error) {
 	var users []domain.User
-	error := repository.DB.Find(&users).Error
+	error := repository.BaseQuery.Find(&users).Error
 	return users, error
 }
 
 // FindByUsername ...
 func (repository *UserRepositoryImpl) FindByUsername(username string) (*domain.User, error) {
 	user := domain.User{}
-	error := repository.DB.Where("username = ?", username).First(&user).Error
+	error := repository.BaseQuery.Where("username = ?", username).First(&user).Error
 	return &user, error
 }

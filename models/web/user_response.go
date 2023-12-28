@@ -3,8 +3,9 @@ package web
 import "peken-be/models/domain"
 
 type UserRoleResponse struct {
-	RoleID   uint   `json:"id"`
-	RoleName string `json:"name"`
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type UserResponse struct {
@@ -19,8 +20,9 @@ func NewUserResponse(user domain.User) UserResponse {
 	var roles []UserRoleResponse
 	for _, role := range user.Roles {
 		roles = append(roles, UserRoleResponse{
-			RoleID:   role.ID,
-			RoleName: role.Name,
+			ID:          role.ID,
+			Name:        role.Name,
+			Description: role.Description,
 		})
 	}
 	return UserResponse{
