@@ -17,9 +17,10 @@ import (
 
 func InitRouter(db *gorm.DB) *gin.Engine {
 	userRepository := repository.NewUserRepository(db)
+	roleRepository := repository.NewRoleRepository(db)
 	passwordUtils := helper.NewPasswordUtils()
 	validate := validator.New()
-	userService := service.NewUserService(userRepository, passwordUtils, validate)
+	userService := service.NewUserService(roleRepository, userRepository, passwordUtils, validate)
 	userController := controller.NewUserController(userService)
 	loginService := service.NewLoginService(userRepository, passwordUtils, validate)
 	loginController := controller.NewLoginController(loginService)

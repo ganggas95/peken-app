@@ -13,16 +13,19 @@ import (
 )
 
 type UserServiceImpl struct {
+	RoleRepository repository.RoleRepository
 	PasswordUtils  helper.PasswordUtils
 	UserRepository repository.UserRepository
 	Validate       *validator.Validate
 }
 
 func NewUserService(
+	roleRepository repository.RoleRepository,
 	userRepository repository.UserRepository,
 	passwordUtils helper.PasswordUtils,
 	validate *validator.Validate) *UserServiceImpl {
 	userService := &UserServiceImpl{
+		RoleRepository: roleRepository,
 		UserRepository: userRepository,
 		Validate:       validate,
 		PasswordUtils:  passwordUtils,
@@ -46,11 +49,21 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) {
 		ctx.Error(errors.NewLudesError(http.StatusInternalServerError, err.Error()))
 		return
 	}
+	var roles []domain.Role
+	for _, roleRequest := range request.Roles {
+		role, errRole := service.RoleRepository.FindByID(roleRequest.RoleID)
+		if errRole != nil {
+			ctx.Error(errors.NewLudesError(http.StatusBadRequest, "Role not found"))
+			return
+		}
+		roles = append(roles, *role)
+	}
 	user := &domain.User{
 		Name:     request.Name,
 		Email:    request.Email,
 		Password: hashedPassword,
 		Username: request.Username,
+		Roles:    roles,
 	}
 	user, err = service.UserRepository.Save(user)
 	if err != nil {
@@ -135,8 +148,25 @@ func (service *UserServiceImpl) FindByID(ctx *gin.Context) {
 
 func (service *UserServiceImpl) FindAll(ctx *gin.Context) {
 	users, _ := service.UserRepository.FindAll()
+	var userResponses []web.UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, web.NewUserResponse(user))
+	}
+	response := web.Response(http.StatusOK, "Success", userResponses)
 
-	response := web.Response(http.StatusOK, "Success", users)
+	ctx.JSON(http.StatusOK, response)
+}
 
+func (service *UserServiceImpl) FindAllUserRoles(ctx *gin.Context) {
+	roles, _ := service.RoleRepository.FindAll()
+	var roleResponse []web.UserRoleResponse
+	for _, role := range roles {
+		roleResponse = append(roleResponse, web.UserRoleResponse{
+			ID:          role.ID,
+			Name:        role.Name,
+			Description: role.Description,
+		})
+	}
+	response := web.Response(http.StatusOK, "Success", roleResponse)
 	ctx.JSON(http.StatusOK, response)
 }

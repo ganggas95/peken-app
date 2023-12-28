@@ -21,10 +21,11 @@ import (
 
 func InitializedServer() *gin.Engine {
 	db := app.ConnectToDb()
+	roleRepositoryImpl := repository.NewRoleRepository(db)
 	userRepositoryImpl := repository.NewUserRepository(db)
 	passwordUtilsImpl := helper.NewPasswordUtils()
 	validate := validator.New()
-	userServiceImpl := service.NewUserService(userRepositoryImpl, passwordUtilsImpl, validate)
+	userServiceImpl := service.NewUserService(roleRepositoryImpl, userRepositoryImpl, passwordUtilsImpl, validate)
 	userControllerImpl := controller.NewUserController(userServiceImpl)
 	loginServiceImpl := service.NewLoginService(userRepositoryImpl, passwordUtilsImpl, validate)
 	loginControllerImpl := controller.NewLoginController(loginServiceImpl)
@@ -33,6 +34,8 @@ func InitializedServer() *gin.Engine {
 }
 
 // injector.go:
+
+var roleSet = wire.NewSet(repository.NewRoleRepository, wire.Bind(new(repository.RoleRepository), new(*repository.RoleRepositoryImpl)))
 
 var userSet = wire.NewSet(repository.NewUserRepository, wire.Bind(new(repository.UserRepository), new(*repository.UserRepositoryImpl)), service.NewUserService, wire.Bind(new(service.UserService), new(*service.UserServiceImpl)), controller.NewUserController, wire.Bind(new(controller.UserController), new(*controller.UserControllerImpl)))
 

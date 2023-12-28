@@ -30,6 +30,7 @@ func InitRoute(
 	user.GET("/:userId", userController.FindById)
 	user.PUT("/:userId", userController.Update)
 	user.DELETE("/:userId", userController.Delete)
+	user.GET("/roles", userController.FindAllUserRoles)
 
 	return router
 }
