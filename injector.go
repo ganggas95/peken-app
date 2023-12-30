@@ -41,9 +41,21 @@ var passGenSet = wire.NewSet(
 var memberSet = wire.NewSet(
 	repository.NewMemberRepository,
 	wire.Bind(new(repository.MemberRepository), new(*repository.MemberRepositoryImpl)),
+	service.NewMemberService,
+	wire.Bind(new(service.MemberService), new(*service.MemberServiceImpl)),
+	controller.NewMemberController,
+	wire.Bind(new(controller.MemberController), new(*controller.MemberControllerImpl)),
 )
 
 func InitializedServer() *gin.Engine {
-	wire.Build(app.ConnectToDb, validator.New, userSet, passGenSet, roleSet, loginSet, memberSet, app.InitRoute)
+	wire.Build(
+		app.ConnectToDb,
+		validator.New,
+		userSet,
+		passGenSet,
+		roleSet,
+		loginSet,
+		memberSet,
+		app.InitRoute)
 	return nil
 }

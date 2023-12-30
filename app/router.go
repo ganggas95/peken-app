@@ -13,6 +13,7 @@ func InitRoute(
 	userController controller.UserController,
 	loginController controller.LoginController,
 	userRepository repository.UserRepository,
+	memberController controller.MemberController,
 ) *gin.Engine {
 	router := gin.New()
 	if os.Getenv("ENV") != "test" {
@@ -25,14 +26,20 @@ func InitRoute(
 	// Login Routes
 	routerGroup.POST("/login", loginController.LoginAPI)
 	// User Routes
-	user := routerGroup.Group("/users")
-	user.Use(middleware.AuthMiddleware(userRepository))
-	user.POST("", userController.Create)
-	user.GET("", userController.FindAll)
-	user.GET("/:userId", userController.FindById)
-	user.PUT("/:userId", userController.Update)
-	user.DELETE("/:userId", userController.Delete)
-	user.GET("/roles", userController.FindAllUserRoles)
+	userRoute := routerGroup.Group("/users")
+	userRoute.Use(middleware.AuthMiddleware(userRepository))
+	userRoute.POST("", userController.Create)
+	userRoute.GET("", userController.FindAll)
+	userRoute.GET("/:userId", userController.FindById)
+	userRoute.PUT("/:userId", userController.Update)
+	userRoute.DELETE("/:userId", userController.Delete)
+	userRoute.GET("/roles", userController.FindAllUserRoles)
 
+	memberRoutes := routerGroup.Group("/members")
+	memberRoutes.POST("", memberController.Create)
+	memberRoutes.GET("", memberController.FindAll)
+	memberRoutes.GET("/:memberId", memberController.FindById)
+	memberRoutes.PUT("/:memberId", memberController.Update)
+	memberRoutes.DELETE("/:memberId", memberController.Delete)
 	return router
 }

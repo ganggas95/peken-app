@@ -29,7 +29,10 @@ func InitializedServer() *gin.Engine {
 	userControllerImpl := controller.NewUserController(userServiceImpl)
 	loginServiceImpl := service.NewLoginService(userRepositoryImpl, passwordUtilsImpl, validate)
 	loginControllerImpl := controller.NewLoginController(loginServiceImpl)
-	engine := app.InitRoute(userControllerImpl, loginControllerImpl, userRepositoryImpl)
+	memberRepositoryImpl := repository.NewMemberRepository(db)
+	memberServiceImpl := service.NewMemberService(memberRepositoryImpl, validate)
+	memberControllerImpl := controller.NewMemberController(memberServiceImpl)
+	engine := app.InitRoute(userControllerImpl, loginControllerImpl, userRepositoryImpl, memberControllerImpl)
 	return engine
 }
 
@@ -42,3 +45,5 @@ var userSet = wire.NewSet(repository.NewUserRepository, wire.Bind(new(repository
 var loginSet = wire.NewSet(service.NewLoginService, wire.Bind(new(service.LoginService), new(*service.LoginServiceImpl)), controller.NewLoginController, wire.Bind(new(controller.LoginController), new(*controller.LoginControllerImpl)))
 
 var passGenSet = wire.NewSet(helper.NewPasswordUtils, wire.Bind(new(helper.PasswordUtils), new(*helper.PasswordUtilsImpl)))
+
+var memberSet = wire.NewSet(repository.NewMemberRepository, wire.Bind(new(repository.MemberRepository), new(*repository.MemberRepositoryImpl)), service.NewMemberService, wire.Bind(new(service.MemberService), new(*service.MemberServiceImpl)), controller.NewMemberController, wire.Bind(new(controller.MemberController), new(*controller.MemberControllerImpl)))
