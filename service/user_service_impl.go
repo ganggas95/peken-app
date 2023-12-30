@@ -61,7 +61,6 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) {
 		roles = append(roles, *role)
 	}
 	user := &domain.User{
-		Name:     request.Name,
 		Email:    request.Email,
 		Password: hashedPassword,
 		Username: request.Username,
@@ -79,9 +78,6 @@ func (service *UserServiceImpl) Save(ctx *gin.Context) {
 }
 
 func (service *UserServiceImpl) UpdateUserFields(user *domain.User, request web.UserUpdateRequest) {
-	if request.Name != "" {
-		user.Name = request.Name
-	}
 	if request.Email != "" {
 		user.Email = request.Email
 	}

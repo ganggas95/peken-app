@@ -75,14 +75,12 @@ func InitializeTestApp() (*gin.Engine, string) {
 	mockUser := domain.User{
 		Username: "testuser",
 		Password: password,
-		Name:     "test",
 		Email:    "test@test.com",
 		Roles:    roles,
 	}
 	mockUser2 := domain.User{
 		Username: "testuser12",
 		Password: password,
-		Name:     "test",
 		Email:    "test12@test.com",
 		Roles:    roles,
 	}
