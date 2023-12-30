@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"peken-be/repository"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +25,16 @@ func NewMemberService(
 }
 
 func (service *MemberServiceImpl) FindAll(ctx *gin.Context) {
-	members, _ := service.MemberRepository.FindAll()
-	fmt.Println(members)
+}
+
+func (service *MemberServiceImpl) Save(ctx *gin.Context) {
+}
+
+func (service *MemberServiceImpl) Update(ctx *gin.Context) {
+}
+
+func (service *MemberServiceImpl) Delete(ctx *gin.Context) {
+}
+
+func (service *MemberServiceImpl) FindByID(ctx *gin.Context) {
 }
